@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Familia — Family Finance</title>
+<title>我が家の財布</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,6 +21,10 @@
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
   .nav-brand { font-family: 'DM Serif Display', serif; font-size: 19px; }
+  .banner-wrap { position: relative; width: 100%; height: 160px; background: var(--surface2); overflow: hidden; cursor: pointer; }
+  .banner-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .banner-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text3); font-size: 13px; }
+  .banner-edit { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.45); color: #fff; font-size: 12px; padding: 5px 10px; border-radius: 20px; font-family: 'DM Sans', sans-serif; pointer-events: none; }
   .nav-sync { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 5px; }
   .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); transition: background 0.3s; }
   .sync-dot.live { background: #1D9E75; }
@@ -107,7 +111,7 @@
 
 <nav class="nav">
   <div style="display:flex;align-items:center;gap:14px">
-    <div class="nav-brand">Familia</div>
+    <div class="nav-brand">我が家の財布</div>
     <div class="nav-sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">connecting</span></div>
   </div>
   <div class="nav-tabs">
@@ -233,7 +237,16 @@
 
 <!-- OVERVIEW -->
 <div class="page" id="page-overview">
-  <div class="page-header"><h2>Overview</h2><p>Your financial picture at a glance</p></div>
+  <div class="banner-wrap" onclick="document.getElementById('banner-file').click()" title="Tap to change banner photo">
+    <img id="banner-img" class="banner-img" style="display:none">
+    <div class="banner-placeholder" id="banner-placeholder">
+      <div style="font-size:28px">🏠</div>
+      <div>Tap to add a family photo</div>
+    </div>
+    <div class="banner-edit">Change photo</div>
+    <input type="file" id="banner-file" accept="image/*" style="display:none" onchange="handleBanner(event)">
+  </div>
+  <div class="page-header" style="margin-top:1.25rem"><h2>Overview</h2><p>Your financial picture at a glance</p></div>
   <div id="ov-empty" class="empty"><div class="empty-icon">📊</div><p>Save a monthly snapshot first.</p></div>
   <div id="ov-content" style="display:none">
     <div class="g4" id="ov-metrics"></div>
@@ -627,6 +640,25 @@ async function clearAll(){
   try{await sbDelete('spends');await sbDelete('monthlies');spends=[];monthlies=[];renderLog();toast('All data cleared');}
   catch(e){toast('Error: '+e.message);}
 }
+
+// ── BANNER ────────────────────────────────────────────
+function handleBanner(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    localStorage.setItem('fam_banner', e.target.result);
+    applyBanner(e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+function applyBanner(src) {
+  const img = document.getElementById('banner-img');
+  const placeholder = document.getElementById('banner-placeholder');
+  if(src) { img.src = src; img.style.display = 'block'; placeholder.style.display = 'none'; }
+}
+const savedBanner = localStorage.getItem('fam_banner');
+if(savedBanner) setTimeout(() => applyBanner(savedBanner), 100);
 
 // ── START ────────────────────────────────────────────
 init();
